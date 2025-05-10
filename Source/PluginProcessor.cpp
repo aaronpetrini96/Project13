@@ -144,6 +144,23 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+    
+    //TODO: add APVTS
+    //TODO: create parameters for all dsp choices
+    //TODO: update DSP here from audio parameters
+    //TODO: save/load settings
+    //TODO: save/load dsp order
+    //TODO: Drag-to-reorder GUI
+    //TODO: GUI desing for each DSP instance?
+    //TODO: metering
+    //TODO: prepare allDSP
+    //TODO: wet/dry knob [bonus]
+    //TODO: mono & stereo versions [mono is bonus]
+    //TODO: modulators [bonus]
+    //TODO: thread-safe filtering updating [bonus]
+    //TODO: pre/post filtering [bonus]
+    //TODO: delay module [bonus]
+    
 
     auto newDSPOrder = DSP_Order();
     
@@ -181,7 +198,6 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     }
     
     //now process
-    
     auto block = juce::dsp::AudioBlock<float>(buffer);
     auto context = juce::dsp::ProcessContextReplacing<float>(block);
     
@@ -189,8 +205,9 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     {
         if (dspPointers[i] != nullptr)
             dspPointers[i]->process(context);
-        
     }
+    
+    
     
 }
 
