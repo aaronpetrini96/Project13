@@ -23,6 +23,23 @@ auto getChorusMixName() {return juce::String("Chorus Mix %");}
 
 auto getOverdriveSaturationName() {return juce::String("Overdrive Saturation");}
 
+auto getLadderFilterModeName() {return juce::String("Ladder Filter Mode");}
+auto getLadderFilterCutoffName() {return juce::String("Ladder Filter Cutoff Hz");}
+auto getLadderFilterResonanceName() {return juce::String("Ladder Filter Resonance");}
+auto getLadderFilterDriveName() {return juce::String("Ladder Filter Drive");}
+auto getLadderFilterChoices()
+{
+    return juce::StringArray
+    {
+        "LPF12",  // low-pass  12 dB/octave
+        "HPF12",  // high-pass 12 dB/octave
+        "BPF12",  // band-pass 12 dB/octave
+        "LPF24",  // low-pass  24 dB/octave
+        "HPF24",  // high-pass 24 dB/octave
+        "BPF24"   // band-pass 24 dB/octave
+    };
+}
+
 //==============================================================================
 Project13AudioProcessor::Project13AudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -38,24 +55,29 @@ Project13AudioProcessor::Project13AudioProcessor()
 {
     auto floatParams = std::array
     {
-//      PHASER
+        //      PHASER
         &phaserRatehz,
         &phaserCenterFreqhz,
         &phaserDepthPercent,
         &phaserFeedbackPercent,
         &phaserMixPercent,
         
-//      CHORUS
+        //      CHORUS
         &chorusRatehz,
         &chorusDepthPercent,
         &chorusCenterDelayms,
         &chorusFeedbackPercent,
         &chorusMixPercent,
         
-//      OD
+        //      OD
         &overdriveSaturation,
+        
+        //       LADDER FILTER
+        &ladderFilterCutoffHz,
+        &ladderFilterResonance,
+        &ladderFilterDrive,
     };
-    
+        
     auto floatNameFuncs = std::array
     {
 //      PHASER
@@ -75,6 +97,12 @@ Project13AudioProcessor::Project13AudioProcessor()
 //        OD
         &getOverdriveSaturationName,
         
+//        LADDER FILTER
+        &getLadderFilterCutoffName,
+        &getLadderFilterResonanceName,
+        &getLadderFilterDriveName,
+
+        
         
     };
     
@@ -84,6 +112,9 @@ Project13AudioProcessor::Project13AudioProcessor()
         *ptrToParamPtr = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(floatNameFuncs[i]()));
         jassert(*ptrToParamPtr != nullptr);
     }
+    
+    ladderFilterMode = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(getLadderFilterModeName()));
+    jassert(ladderFilterMode != nullptr);
 }
 
 Project13AudioProcessor::~Project13AudioProcessor()
@@ -231,6 +262,23 @@ juce::AudioProcessorValueTreeState::ParameterLayout Project13AudioProcessor::cre
 //    OVERDRIVE
     name = getOverdriveSaturationName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(1.f, 100.f, 0.01f, 1.f), 1.f, ""));
+    
+//    LADDER FILTER
+    name = getLadderFilterModeName();
+    auto choices = getLadderFilterChoices();
+    layout.add(std::make_unique<juce::AudioParameterChoice>(juce::ParameterID(name, versionHint), name, choices, 0));
+    
+    name = getLadderFilterCutoffName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(20.f, 20000.f, 0.1f, 1.f), 20000.f, "Hz"));
+    
+    name = getLadderFilterResonanceName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(0.f, 1.f, 0.01f, 1.f), 0.f, ""));
+    
+    name = getLadderFilterDriveName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(1.f, 100.f, 0.01f, 1.f), 1.f,""));
+    
+    
+    
     
     return layout;
 }

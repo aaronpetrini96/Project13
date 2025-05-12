@@ -83,6 +83,11 @@ public:
     juce::AudioParameterFloat* chorusMixPercent = nullptr;
 //  OD
     juce::AudioParameterFloat* overdriveSaturation = nullptr;
+//   LADDER FILTER
+    juce::AudioParameterChoice* ladderFilterMode = nullptr;
+    juce::AudioParameterFloat*  ladderFilterCutoffHz = nullptr;
+    juce::AudioParameterFloat*  ladderFilterResonance = nullptr;
+    juce::AudioParameterFloat*  ladderFilterDrive = nullptr;
 
 private:
     
