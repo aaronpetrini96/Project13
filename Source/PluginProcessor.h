@@ -81,6 +81,8 @@ public:
     juce::AudioParameterFloat* chorusCenterDelayms = nullptr;
     juce::AudioParameterFloat* chorusFeedbackPercent = nullptr;
     juce::AudioParameterFloat* chorusMixPercent = nullptr;
+//  OD
+    juce::AudioParameterFloat* overdriveSaturation = nullptr;
 
 private:
     
