@@ -14,19 +14,18 @@ auto getPhaserCenterFreqName() {return juce::String("Phaser Center FreqHz");}
 auto getPhaserDepthName() {return juce::String("Phaser Depth %");}
 auto getPhaserFeedbackName() {return juce::String("Phaser Feedback %");}
 auto getPhaserMixName() {return juce::String("Phaser Mix %");}
+auto getPhaserBypassName() {return juce::String("Phaser Bypass");}
 
 auto getChorusRateName() {return juce::String("Chorus RateHz");}
 auto getChorusDepthName() {return juce::String("Chorus Depth %");}
 auto getChorusCenterDelayName() {return juce::String("Chorus Center Delay Ms");}
 auto getChorusFeedbackName() {return juce::String("Chorus Feedback %");}
 auto getChorusMixName() {return juce::String("Chorus Mix %");}
+auto getChorusBypassName() {return juce::String("Chorus Bypass");}
 
 auto getOverdriveSaturationName() {return juce::String("Overdrive Saturation");}
+auto getOverdriveBypassName() {return juce::String("Overdrive Bypass");}
 
-auto getLadderFilterModeName() {return juce::String("Ladder Filter Mode");}
-auto getLadderFilterCutoffName() {return juce::String("Ladder Filter Cutoff Hz");}
-auto getLadderFilterResonanceName() {return juce::String("Ladder Filter Resonance");}
-auto getLadderFilterDriveName() {return juce::String("Ladder Filter Drive");}
 auto getLadderFilterChoices()
 {
     return juce::StringArray
@@ -38,14 +37,14 @@ auto getLadderFilterChoices()
         "HPF24",  // high-pass 24 dB/octave
         "BPF24"   // band-pass 24 dB/octave
     };
-    
-    
 }
+auto getLadderFilterModeName() {return juce::String("Ladder Filter Mode");}
+auto getLadderFilterCutoffName() {return juce::String("Ladder Filter Cutoff Hz");}
+auto getLadderFilterResonanceName() {return juce::String("Ladder Filter Resonance");}
+auto getLadderFilterDriveName() {return juce::String("Ladder Filter Drive");}
+auto getLadderFilterBypassName() {return juce::String("Ladder Filter Bypass");}
 
-auto getGeneralFilterModeName() {return juce::String("General Filter Mode");}
-auto getGeneralFilterFreqName() {return juce::String("General Filter Freq Hz");}
-auto getGeneralFilterQualityName() {return juce::String("General Filter Quality");}
-auto getGeneralFilterGainName() {return juce::String("General Filter Gain");}
+
 auto getGeneralFilterChoices()
 {
     return juce::StringArray
@@ -56,6 +55,14 @@ auto getGeneralFilterChoices()
         "allpass",
     };
 }
+auto getGeneralFilterModeName() {return juce::String("General Filter Mode");}
+auto getGeneralFilterFreqName() {return juce::String("General Filter Freq Hz");}
+auto getGeneralFilterQualityName() {return juce::String("General Filter Quality");}
+auto getGeneralFilterGainName() {return juce::String("General Filter Gain");}
+auto getGeneralFilterBypassName() {return juce::String("General Filter Bypass");}
+
+
+
 
 //==============================================================================
 Project13AudioProcessor::Project13AudioProcessor()
@@ -77,23 +84,27 @@ Project13AudioProcessor::Project13AudioProcessor()
         DSP_Option::Overdrive,
         DSP_Option::LadderFilter,
     };
+    
+    
+    
+//============ FLOAT PARAMS ============
     auto floatParams = std::array
     {
-        //      PHASER
+//      PHASER
         &phaserRatehz,
         &phaserCenterFreqhz,
         &phaserDepthPercent,
         &phaserFeedbackPercent,
         &phaserMixPercent,
         
-        //      CHORUS
+//      CHORUS
         &chorusRatehz,
         &chorusDepthPercent,
         &chorusCenterDelayms,
         &chorusFeedbackPercent,
         &chorusMixPercent,
         
-        //      OD
+//      OD
         &overdriveSaturation,
         
 //       LADDER FILTER
@@ -145,6 +156,8 @@ Project13AudioProcessor::Project13AudioProcessor()
         jassert(*ptrToParamPtr != nullptr);
     }
     
+//============ CHOICE PARAMS ============
+    
     auto choiceParams = std::array
     {
         &ladderFilterMode,
@@ -164,9 +177,33 @@ Project13AudioProcessor::Project13AudioProcessor()
         *ptrToParamPtr = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(choiceNameFuncs[i]()));
         jassert(*ptrToParamPtr != nullptr);
     }
+
     
-//    ladderFilterMode = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(getLadderFilterModeName()));
-//    jassert(ladderFilterMode != nullptr);
+//============ BOOL PARAMS ============
+    auto bypassParams = std::array
+    {
+        &phaserBypass,
+        &chorusBypass,
+        &overdriveBypass,
+        &ladderFilterBypass,
+        &generalFilterBypass,
+    };
+    
+    auto bypassNameFuncs = std::array
+    {
+        &getPhaserBypassName,
+        &getChorusBypassName,
+        &getOverdriveBypassName,
+        &getLadderFilterBypassName,
+        &getGeneralFilterBypassName,
+    };
+    
+    for (size_t i {0}; i < bypassParams.size(); ++i)
+    {
+        auto ptrToParamPtr = bypassParams[i];
+        *ptrToParamPtr = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(bypassNameFuncs[i]()));
+        jassert(*ptrToParamPtr != nullptr);
+    }
 }
 
 Project13AudioProcessor::~Project13AudioProcessor()
@@ -313,6 +350,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout Project13AudioProcessor::cre
     name = getPhaserMixName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(0.f, 1.f, 0.01f, 30.f), 0.f, "%"));
     
+    name = getPhaserBypassName();
+    layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID(name, versionHint), name, false));
+    
 //    CHORUS
     name = getChorusRateName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(0.01f, 100.f, 0.01f, 1.f), 0.2f, "Hz"));
@@ -329,9 +369,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout Project13AudioProcessor::cre
     name = getChorusMixName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(0.f, 1.f, 0.01f, 30.f), 0.f, "%"));
     
+    name = getChorusBypassName();
+    layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID(name, versionHint), name, false));
+    
 //    OVERDRIVE
     name = getOverdriveSaturationName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(1.f, 100.f, 0.01f, 1.f), 1.f, ""));
+    
+    name = getOverdriveBypassName();
+    layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID(name, versionHint), name, false));
     
 //    LADDER FILTER
     name = getLadderFilterModeName();
@@ -347,6 +393,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout Project13AudioProcessor::cre
     name = getLadderFilterDriveName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(1.f, 100.f, 0.01f, 1.f), 1.f,""));
     
+    name = getLadderFilterBypassName();
+    layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID(name, versionHint), name, false));
+    
 //    GENERAL FILTER
     name = getGeneralFilterModeName();
     choices = getGeneralFilterChoices();
@@ -361,7 +410,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout Project13AudioProcessor::cre
     name = getGeneralFilterGainName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f), 0.f, "dB"));
     
-    
+    name = getGeneralFilterBypassName();
+    layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID(name, versionHint), name, false));
     
     return layout;
 }
@@ -385,14 +435,15 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //[DONE]: add APVTS
     //[DONE]: create parameters for all dsp choices
     //[DONE]: update DSP here from audio parameters
+    //[DONE]: bypass params
+    //TODO: update general filter corrections
+    //TODO: add smoothers for all params updates
     //[DONE]: save/load settings
     //[DONE]: save/load dsp order
     //TODO: Filters are mono not stereo
     //TODO: Drag-to-reorder GUI
     //TODO: GUI desing for each DSP instance?
     //TODO: metering
-    //TODO: update general filter corrections
-    //TODO: add smoothers for all params updates
     //[DONE]: prepare allDSP
     //TODO: wet/dry knob [bonus]
     //TODO: mono & stereo versions [mono is bonus]
