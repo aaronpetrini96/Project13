@@ -27,7 +27,7 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
         }
         
         DBG(juce::Base64::toBase64(dspOrder.data(), dspOrder.size()));
-        jassertfalse;
+//        jassertfalse;
         
         audioProcessor.dspOrderFifo.push(dspOrder);
     };

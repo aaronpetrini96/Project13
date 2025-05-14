@@ -130,8 +130,13 @@ private:
     DSP_Choice<juce::dsp::LadderFilter<float>> overdrive, ladderFilter;
     DSP_Choice<juce::dsp::IIR::Filter<float>> generalFilter;
     
+    struct ProcessState
+    {
+        juce::dsp::ProcessorBase* processor = nullptr;
+        bool bypassed = false;
+    };
     
-    using DSP_Pointers = std::array<juce::dsp::ProcessorBase*, static_cast<size_t>(DSP_Option::END_OF_LIST)>;
+    using DSP_Pointers = std::array<ProcessState, static_cast<size_t>(DSP_Option::END_OF_LIST)>;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Project13AudioProcessor)
 };
