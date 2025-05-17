@@ -149,12 +149,7 @@ Project13AudioProcessor::Project13AudioProcessor()
         
     };
     
-    for (size_t i = 0 ; i < floatParams.size(); ++i)
-    {
-        auto ptrToParamPtr = floatParams [i];
-        *ptrToParamPtr = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(floatNameFuncs[i]()));
-        jassert(*ptrToParamPtr != nullptr);
-    }
+    initCachedParams<juce::AudioParameterFloat*>(floatParams, floatNameFuncs);
     
 //============ CHOICE PARAMS ============
     
@@ -171,13 +166,8 @@ Project13AudioProcessor::Project13AudioProcessor()
         &getGeneralFilterModeName,
     };
     
-    for (size_t i = 0 ; i < choiceParams.size(); ++i)
-    {
-        auto ptrToParamPtr = choiceParams [i];
-        *ptrToParamPtr = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(choiceNameFuncs[i]()));
-        jassert(*ptrToParamPtr != nullptr);
-    }
-
+    
+    initCachedParams<juce::AudioParameterChoice*>(choiceParams, choiceNameFuncs);
     
 //============ BOOL PARAMS ============
     auto bypassParams = std::array
@@ -198,12 +188,8 @@ Project13AudioProcessor::Project13AudioProcessor()
         &getGeneralFilterBypassName,
     };
     
-    for (size_t i {0}; i < bypassParams.size(); ++i)
-    {
-        auto ptrToParamPtr = bypassParams[i];
-        *ptrToParamPtr = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(bypassNameFuncs[i]()));
-        jassert(*ptrToParamPtr != nullptr);
-    }
+
+    initCachedParams<juce::AudioParameterBool*>(bypassParams, bypassNameFuncs);
 }
 
 Project13AudioProcessor::~Project13AudioProcessor()
@@ -440,6 +426,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //TODO: add smoothers for all params updates
     //[DONE]: save/load settings
     //[DONE]: save/load dsp order
+    //[DONE]: bypass DSP
     //TODO: Filters are mono not stereo
     //TODO: Drag-to-reorder GUI
     //TODO: GUI desing for each DSP instance?
