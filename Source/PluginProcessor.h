@@ -100,6 +100,16 @@ public:
     juce::AudioParameterFloat*  generalFilterGain = nullptr;
     juce::AudioParameterBool*   generalFilterBypass = nullptr;
     
+    enum class GeneralFilterMode
+    {
+        Peak,
+        Bandpass,
+        Notch,
+        Allpass,
+        END_OF_LIST,
+    };
+    
+    
 
 private:
     
@@ -142,6 +152,8 @@ private:
         
     private:
         Project13AudioProcessor& p;
+        GeneralFilterMode filterMode = GeneralFilterMode::END_OF_LIST;
+        float filterFreq = 0.f, filterQ = 0.f, filterGain = -100.f; //different values than default to update them when plugin is opened
     };
     
     MonoChannelDSP leftChannel {*this};
