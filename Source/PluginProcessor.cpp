@@ -77,13 +77,7 @@ Project13AudioProcessor::Project13AudioProcessor()
                        )
 #endif
 {
-//    dspOrder =
-//    {
-//        DSP_Option::Phase,
-//        DSP_Option::Chorus,
-//        DSP_Option::Overdrive,
-//        DSP_Option::LadderFilter,
-//    };
+
     for(size_t i = 0; i < static_cast<size_t>(DSP_Option::END_OF_LIST); ++i)
     {
         dspOrder[i] = static_cast<DSP_Option>(i);
@@ -506,7 +500,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //[DONE]: create parameters for all dsp choices
     //[DONE]: update DSP here from audio parameters
     //[DONE]: bypass params
-    //TODO: update general filter corrections
+    //[DONE]: update general filter coefficients
     //TODO: add smoothers for all params updates
     //[DONE]: save/load settings
     //[DONE]: save/load dsp order
