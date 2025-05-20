@@ -100,6 +100,28 @@ public:
     juce::AudioParameterFloat*  generalFilterGain = nullptr;
     juce::AudioParameterBool*   generalFilterBypass = nullptr;
     
+//    SMOOTHED
+    //  Phase
+    juce::SmoothedValue<float>
+    phaserRatehzSmoother,
+    phaserCenterFreqhzSmoother,
+    phaserDepthPercentSmoother,
+    phaserFeedbackPercentSmoother,
+    phaserMixPercentSmoother,
+    chorusRatehzSmoother,
+    chorusDepthPercentSmoother,
+    chorusCenterDelaymsSmoother,
+    chorusFeedbackPercentSmoother,
+    chorusMixPercentSmoother,
+    overdriveSaturationSmoother,
+    ladderFilterCutoffHzSmoother,
+    ladderFilterResonanceSmoother,
+    ladderFilterDriveSmoother,
+    generalFilterFreqHzSmoother,
+    generalFilterQualitySmoother,
+    generalFilterGainSmoother;
+    
+    
     enum class GeneralFilterMode
     {
         Peak,
@@ -182,6 +204,16 @@ private:
         }
     }
     
+    
+    std::vector<juce::SmoothedValue<float>*> getSmoothers();
+    
+    enum class SmootherUpdateMode
+    {
+        initialize,
+        liveInRealTime
+    };
+    
+    void updateSmootherFromParams(int numSamplesToSkip, SmootherUpdateMode init);
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Project13AudioProcessor)
 };

@@ -264,6 +264,77 @@ void Project13AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     
     leftChannel.prepare(spec);
     rightChannel.prepare(spec);
+    
+    for(auto smoother : getSmoothers())
+        smoother->reset(sampleRate, 0.005);
+    
+    updateSmootherFromParams(1, SmootherUpdateMode::initialize);
+}
+
+void Project13AudioProcessor::updateSmootherFromParams(int numSamplesToSkip, SmootherUpdateMode init)
+{
+    auto paramsNeedingSmoothing = std::vector
+    {
+        phaserRatehz,
+        phaserCenterFreqhz,
+        phaserDepthPercent,
+        phaserFeedbackPercent,
+        phaserMixPercent,
+        chorusRatehz,
+        chorusDepthPercent,
+        chorusCenterDelayms,
+        chorusFeedbackPercent,
+        chorusMixPercent,
+        overdriveSaturation,
+        ladderFilterCutoffHz,
+        ladderFilterResonance,
+        ladderFilterDrive,
+        generalFilterFreqHz,
+        generalFilterQuality,
+        generalFilterGain,
+    };
+    
+    auto smoothers = getSmoothers();
+    jassert(smoothers.size() == paramsNeedingSmoothing.size());
+    
+    for (size_t i = 0; i < smoothers.size(); ++i)
+    {
+        auto smoother = smoothers[i];
+        auto param = paramsNeedingSmoothing [i];
+        
+        if (init == SmootherUpdateMode::initialize)
+            smoother->setCurrentAndTargetValue(param->get());
+        else
+            smoother->setTargetValue(param->get());
+        
+        smoother->skip(numSamplesToSkip);
+    }
+}
+
+std::vector<juce::SmoothedValue<float>*> Project13AudioProcessor::getSmoothers()
+{
+    auto smoothers = std::vector
+    {
+       &phaserRatehzSmoother,
+       &phaserCenterFreqhzSmoother,
+       &phaserDepthPercentSmoother,
+       &phaserFeedbackPercentSmoother,
+       &phaserMixPercentSmoother,
+       &chorusRatehzSmoother,
+       &chorusDepthPercentSmoother,
+       &chorusCenterDelaymsSmoother,
+       &chorusFeedbackPercentSmoother,
+       &chorusMixPercentSmoother,
+       &overdriveSaturationSmoother,
+       &ladderFilterCutoffHzSmoother,
+       &ladderFilterResonanceSmoother,
+       &ladderFilterDriveSmoother,
+       &generalFilterFreqHzSmoother,
+       &generalFilterQualitySmoother,
+       &generalFilterGainSmoother,
+    };
+    
+    return smoothers;
 }
 
 void Project13AudioProcessor::MonoChannelDSP::prepare(juce::dsp::ProcessSpec &spec)
@@ -406,24 +477,24 @@ juce::AudioProcessorValueTreeState::ParameterLayout Project13AudioProcessor::cre
 
 void Project13AudioProcessor::MonoChannelDSP::updateDSPFromParams()
 {
-    phaser.dsp.setRate(p.phaserRatehz->get());
-    phaser.dsp.setCentreFrequency(p.phaserCenterFreqhz->get());
-    phaser.dsp.setDepth(p.phaserDepthPercent->get());
-    phaser.dsp.setFeedback(p.phaserFeedbackPercent->get());
-    phaser.dsp.setMix(p.phaserMixPercent->get());
+    phaser.dsp.setRate(p.phaserRatehzSmoother.getCurrentValue());
+    phaser.dsp.setCentreFrequency(p.phaserCenterFreqhzSmoother.getCurrentValue());
+    phaser.dsp.setDepth(p.phaserDepthPercentSmoother.getCurrentValue());
+    phaser.dsp.setFeedback(p.phaserFeedbackPercentSmoother.getCurrentValue());
+    phaser.dsp.setMix(p.phaserMixPercentSmoother.getCurrentValue());
     
-    chorus.dsp.setRate(p.chorusRatehz->get());
-    chorus.dsp.setDepth(p.chorusDepthPercent->get());
-    chorus.dsp.setCentreDelay(p.chorusCenterDelayms->get());
-    chorus.dsp.setFeedback(p.chorusFeedbackPercent->get());
-    chorus.dsp.setMix(p.chorusMixPercent->get());
+    chorus.dsp.setRate(p.chorusRatehzSmoother.getCurrentValue());;
+    chorus.dsp.setDepth(p.chorusDepthPercentSmoother.getCurrentValue());
+    chorus.dsp.setCentreDelay(p.chorusCenterDelaymsSmoother.getCurrentValue());
+    chorus.dsp.setFeedback(p.chorusFeedbackPercentSmoother.getCurrentValue());
+    chorus.dsp.setMix(p.chorusMixPercentSmoother.getCurrentValue());
     
-    overdrive.dsp.setDrive(p.overdriveSaturation->get());
+    overdrive.dsp.setDrive(p.overdriveSaturationSmoother.getCurrentValue());
     
     ladderFilter.dsp.setMode(static_cast<juce::dsp::LadderFilterMode>(p.ladderFilterMode->getIndex()));
-    ladderFilter.dsp.setCutoffFrequencyHz(p.ladderFilterCutoffHz->get());
-    ladderFilter.dsp.setResonance(p.ladderFilterResonance->get());
-    ladderFilter.dsp.setDrive(p.ladderFilterDrive->get());
+    ladderFilter.dsp.setCutoffFrequencyHz(p.ladderFilterCutoffHzSmoother.getCurrentValue());
+    ladderFilter.dsp.setResonance(p.ladderFilterResonanceSmoother.getCurrentValue());
+    ladderFilter.dsp.setDrive(p.ladderFilterDriveSmoother.getCurrentValue());
     
 //    UPDATE GENERAL FILTER COEFFs HERE
     auto sampleRate = p.getSampleRate();
@@ -470,11 +541,6 @@ void Project13AudioProcessor::MonoChannelDSP::updateDSPFromParams()
         
         if (coefficients != nullptr)
         {
-            if (generalFilter.dsp.coefficients->coefficients.size() != coefficients->coefficients.size())
-            {
-                jassertfalse;
-            }
-            
             *generalFilter.dsp.coefficients = *coefficients;
             generalFilter.reset();
         }
@@ -538,6 +604,8 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     leftChannel.process(block.getSingleChannelBlock(0), dspOrder);
     rightChannel.process(block.getSingleChannelBlock(1), dspOrder);
 }
+
+
 
 void Project13AudioProcessor::MonoChannelDSP::process(juce::dsp::AudioBlock<float> block, const DSP_Order &dspOrder)
 {
