@@ -567,7 +567,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //[DONE]: update DSP here from audio parameters
     //[DONE]: bypass params
     //[DONE]: update general filter coefficients
-    //TODO: add smoothers for all params updates
+    //[DONE]: add smoothers for all params updates
     //[DONE]: save/load settings
     //[DONE]: save/load dsp order
     //[DONE]: bypass DSP
@@ -600,9 +600,39 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     if (newDSPOrder != DSP_Order())
         dspOrder = newDSPOrder;
     
+//    auto block = juce::dsp::AudioBlock<float>(buffer);
+//    leftChannel.process(block.getSingleChannelBlock(0), dspOrder);
+//    rightChannel.process(block.getSingleChannelBlock(1), dspOrder);
+    
+    auto samplesRemaining = buffer.getNumSamples();
+    auto maxSamplesToProcess = juce::jmin(samplesRemaining, 64);
+    
     auto block = juce::dsp::AudioBlock<float>(buffer);
-    leftChannel.process(block.getSingleChannelBlock(0), dspOrder);
-    rightChannel.process(block.getSingleChannelBlock(1), dspOrder);
+    size_t startSample = 0;
+    while (samplesRemaining > 0)
+    {
+        /*
+         figure out how many samples to process.
+         i.e. you have a buffer size of 72.
+         the first time the samplesToProcess will be 64, because we set maxSamplesToProcess to 64, and samplesRemaining =72.
+         the 2nd time smaplesToProcess will be 8 (72-64).
+         */
+        
+        auto samplesToProcess = juce::jmin(samplesRemaining, maxSamplesToProcess);
+        updateSmootherFromParams(samplesToProcess, SmootherUpdateMode::liveInRealTime);
+        
+        leftChannel.updateDSPFromParams();
+        rightChannel.updateDSPFromParams();
+        
+        auto subBlock = block.getSubBlock(startSample, samplesToProcess);
+        
+        leftChannel.process(subBlock.getSingleChannelBlock(0), dspOrder);
+        rightChannel.process(subBlock.getSingleChannelBlock(1), dspOrder);
+        
+        startSample += samplesToProcess;
+        samplesRemaining -= samplesToProcess;
+        
+    }
 }
 
 
