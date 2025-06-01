@@ -28,8 +28,33 @@ static juce::String getDSPOptionName(Project13AudioProcessor::DSP_Option option)
     }
     return "NO SELECTION";
 }
+
+//==============================================================================
+//  ============  EXTENDED TABBED BUTTON BAR ============
+
+ExtendedTabbedButtonBar::ExtendedTabbedButtonBar() : juce::TabbedButtonBar(juce::TabbedButtonBar::Orientation::TabsAtTop)
+{
+    
+}
+
+bool ExtendedTabbedButtonBar::isInterestedInDragSource(const SourceDetails &dragSourceDetails)
+{
+    return false;
+}
+
+void ExtendedTabbedButtonBar::itemDropped(const SourceDetails &dragSourceDetails)
+{
+    
+}
+
+juce::TabBarButton* ExtendedTabbedButtonBar::createTabButton(const juce::String &tabName, int tabIndex)
+{
+    return new ExtendedTabBarButton(tabName, *this);
+}
+
+//  ============  HorizontalConstrainer  ============
 HorizontalConstrainer::HorizontalConstrainer(std::function<juce::Rectangle<int>()> confinerBoundsGetter,
-                      std::function<juce::Rectangle<int>()> confineeBoundsGetter) :
+                                             std::function<juce::Rectangle<int>()> confineeBoundsGetter) :
 boundsToConfineToGetter(std::move(confinerBoundsGetter)), boundsOfConfineeGetter(std::move(confineeBoundsGetter))
 {
     
@@ -58,6 +83,11 @@ void HorizontalConstrainer::checkBounds (juce::Rectangle<int>& bounds,
     }
 }
 
+
+
+//==============================================================================
+//  ============  EXTENDED TAB BAR BUTTON  ============
+
 ExtendedTabBarButton::ExtendedTabBarButton(const juce::String& name, juce::TabbedButtonBar& owner) :
 juce::TabBarButton(name, owner)
 {
@@ -67,11 +97,20 @@ juce::TabBarButton(name, owner)
     constrainer -> setMinimumOnscreenAmounts(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff);
 }
 
-juce::TabBarButton* ExtendedTabbedButtonBar::createTabButton(const juce::String &tabName, int tabIndex)
+void ExtendedTabBarButton::mouseDown(const juce::MouseEvent &e)
 {
-    return new ExtendedTabBarButton(tabName, *this);
+    toFront(true);
+    dragger.startDraggingComponent (this, e);
+    juce::TabBarButton::mouseDown(e);
 }
 
+void ExtendedTabBarButton::mouseDrag(const juce::MouseEvent &e)
+{
+    dragger.dragComponent (this, e, constrainer.get());
+}
+
+
+//==============================================================================
 //==============================================================================
 Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
