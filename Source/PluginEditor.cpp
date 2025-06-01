@@ -39,17 +39,103 @@ ExtendedTabbedButtonBar::ExtendedTabbedButtonBar() : juce::TabbedButtonBar(juce:
 
 bool ExtendedTabbedButtonBar::isInterestedInDragSource(const SourceDetails &dragSourceDetails)
 {
+//    if (auto tabBarBeingDragged = dynamic_cast<ExtendedTabBarButton*>(dragSourceDetails.sourceComponent.get()))
+    if (dynamic_cast<ExtendedTabBarButton*>(dragSourceDetails.sourceComponent.get()))
+        return true;
     return false;
+}
+
+void ExtendedTabbedButtonBar::itemDragEnter(const SourceDetails &dragSourceDetails)
+{
+    DBG("ExtendedTabbedButtonBar::itemDragEnter");
+    juce::DragAndDropTarget::itemDragEnter(dragSourceDetails);
+}
+
+void ExtendedTabbedButtonBar::itemDragMove(const SourceDetails &dragSourceDetails)
+{
+    if (auto tabButtonBeingDragged = dynamic_cast<ExtendedTabBarButton*>(dragSourceDetails.sourceComponent.get()))
+    {
+        auto numTabs = getNumTabs();
+        auto tabs = juce::Array<juce::TabBarButton*>();
+        tabs.resize(numTabs);
+        for (int i {0}; i < numTabs; ++i)
+            tabs.getReference(i) = getTabButton(i);
+        
+        auto index = tabs.indexOf(tabButtonBeingDragged);
+        if (index == -1)
+        {
+            DBG("failed to find tab being dragged in list of tabs");
+            jassertfalse;
+            return;
+        }
+        
+        //find the tab that tabButtonBeingDragged is colliding with
+        //where is it ? left/right
+        //if right swap positions
+    
+        auto previousTabIndex = index -1;
+        auto nextTabIndex = index + 1;
+        auto previousTab = getTabButton(previousTabIndex);
+        auto nextTab = getTabButton(nextTabIndex);
+        
+        if( previousTab == nullptr && nextTab != nullptr)
+        {
+            //you're 0th pos
+            if (tabButtonBeingDragged->getX() > nextTab->getBounds().getCentreX())
+            {
+                moveTab(index, nextTabIndex);
+            }
+        }
+        else if(previousTab != nullptr && nextTab == nullptr)
+        {
+            //you are in last pos
+            if (tabButtonBeingDragged->getX() < previousTab -> getBounds().getCentreX())
+            {
+                moveTab(index, previousTabIndex);
+            }
+        }
+        else
+        {
+            //you are in the middle
+            if (tabButtonBeingDragged->getX() > nextTab->getBounds().getCentreX())
+            {
+                moveTab(index, nextTabIndex);
+            }
+            else if (tabButtonBeingDragged->getX() < previousTab -> getBounds().getCentreX())
+            {
+                moveTab(index, previousTabIndex);
+            }
+        }
+    }
+}
+
+void ExtendedTabbedButtonBar::itemDragExit(const SourceDetails &dragSourceDetails)
+{
+    DBG("ExtendedTabbedButtonBar::itemDragExit");
+    juce::DragAndDropTarget::itemDragExit(dragSourceDetails);
 }
 
 void ExtendedTabbedButtonBar::itemDropped(const SourceDetails &dragSourceDetails)
 {
-    
+    DBG("ExtendedTabbedButtonBar::itemDropped");
+//    find the droppped item. Lock position in.
+}
+
+void ExtendedTabbedButtonBar::mouseDown(const juce::MouseEvent &e)
+{
+    DBG("ExtendedTabbedButtonBar::mouseDown");
+    if (auto tabButtonBeingDragged = dynamic_cast<ExtendedTabBarButton*>(e.originalComponent))
+    {
+        startDragging(tabButtonBeingDragged->TabBarButton::getTitle(), tabButtonBeingDragged);
+    }
 }
 
 juce::TabBarButton* ExtendedTabbedButtonBar::createTabButton(const juce::String &tabName, int tabIndex)
 {
-    return new ExtendedTabBarButton(tabName, *this);
+    auto etbb = std::make_unique<ExtendedTabBarButton>(tabName, *this);
+    etbb -> addMouseListener(this, false);
+    
+    return etbb.release();
 }
 
 //  ============  HorizontalConstrainer  ============
