@@ -51,17 +51,41 @@ void ExtendedTabbedButtonBar::itemDragEnter(const SourceDetails &dragSourceDetai
     juce::DragAndDropTarget::itemDragEnter(dragSourceDetails);
 }
 
+juce::TabBarButton* ExtendedTabbedButtonBar::findDraggedItem (const SourceDetails& dragSourceDetails)
+{
+    return getTabButton(findDraggedItemIndex(dragSourceDetails));
+}
+
+int ExtendedTabbedButtonBar::findDraggedItemIndex (const SourceDetails& dragSourceDetails)
+{
+    if (auto tabButtonBeingDragged = dynamic_cast<ExtendedTabBarButton*>(dragSourceDetails.sourceComponent.get()))
+    {
+        auto tabs = getTabs();
+        auto idx = tabs.indexOf(tabButtonBeingDragged);
+        return idx;
+    }
+    
+    return -1;
+}
+
+juce::Array<juce::TabBarButton*> ExtendedTabbedButtonBar::getTabs()
+{
+    auto numTabs = getNumTabs();
+    auto tabs = juce::Array<juce::TabBarButton*>();
+    tabs.resize(numTabs);
+    for (int i {0}; i < numTabs; ++i)
+        tabs.getReference(i) = getTabButton(i);
+    
+    return tabs;
+}
+
 void ExtendedTabbedButtonBar::itemDragMove(const SourceDetails &dragSourceDetails)
 {
     if (auto tabButtonBeingDragged = dynamic_cast<ExtendedTabBarButton*>(dragSourceDetails.sourceComponent.get()))
     {
-        auto numTabs = getNumTabs();
-        auto tabs = juce::Array<juce::TabBarButton*>();
-        tabs.resize(numTabs);
-        for (int i {0}; i < numTabs; ++i)
-            tabs.getReference(i) = getTabButton(i);
+        auto tabs = getTabs();
         
-        auto index = tabs.indexOf(tabButtonBeingDragged);
+        auto index = findDraggedItemIndex(dragSourceDetails);
         if (index == -1)
         {
             DBG("failed to find tab being dragged in list of tabs");
@@ -119,6 +143,7 @@ void ExtendedTabbedButtonBar::itemDropped(const SourceDetails &dragSourceDetails
 {
     DBG("ExtendedTabbedButtonBar::itemDropped");
 //    find the droppped item. Lock position in.
+    resized();
 }
 
 void ExtendedTabbedButtonBar::mouseDown(const juce::MouseEvent &e)
