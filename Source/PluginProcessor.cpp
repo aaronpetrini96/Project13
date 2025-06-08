@@ -653,6 +653,12 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //[DONE]: Restore Tabs in GUI when loading
     //TODO: save/load presets
     //TODO: GUI desing for each DSP instance?
+    //TODO: add bypass buttons to tabs
+    //TODO: make selected tab more obvious
+    //TODO: mouse down on tab should change gui
+    //TODO: replace vertical sliders with SimpleMBComp sliders
+    //TODO: replace combo boxes with SimpleMBComp combobox
+    //TODO: replace bypass buttons with SimpleMBComp buttons
     //TODO: metering
     //[DONE]: prepare allDSP
     //TODO: wet/dry knob [bonus]
