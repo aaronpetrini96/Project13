@@ -50,12 +50,15 @@ static Project13AudioProcessor::DSP_Option getDSPOptionFromName(juce::String nam
 
 ExtendedTabbedButtonBar::ExtendedTabbedButtonBar() : juce::TabbedButtonBar(juce::TabbedButtonBar::Orientation::TabsAtTop)
 {
+    auto img = juce::Image(juce::Image::PixelFormat::SingleChannel, 1, 1, true);
+    auto gfx = juce::Graphics(img);
+    gfx.fillAll(juce::Colours::transparentBlack);
     
+    dragImage = juce::ScaledImage(img, 1.0);
 }
 
 bool ExtendedTabbedButtonBar::isInterestedInDragSource(const SourceDetails &dragSourceDetails)
 {
-//    if (auto tabBarBeingDragged = dynamic_cast<ExtendedTabBarButton*>(dragSourceDetails.sourceComponent.get()))
     if (dynamic_cast<ExtendedTabBarButton*>(dragSourceDetails.sourceComponent.get()))
         return true;
     return false;
@@ -185,7 +188,7 @@ void ExtendedTabbedButtonBar::mouseDown(const juce::MouseEvent &e)
     DBG("ExtendedTabbedButtonBar::mouseDown");
     if (auto tabButtonBeingDragged = dynamic_cast<ExtendedTabBarButton*>(e.originalComponent))
     {
-        startDragging(tabButtonBeingDragged->TabBarButton::getTitle(), tabButtonBeingDragged);
+        startDragging(tabButtonBeingDragged->TabBarButton::getTitle(), tabButtonBeingDragged, dragImage);
     }
 }
 

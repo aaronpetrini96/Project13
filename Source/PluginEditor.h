@@ -41,6 +41,7 @@ private:
     int findDraggedItemIndex (const SourceDetails& dragSourceDetails);
     juce::Array<juce::TabBarButton*> getTabs();
     
+    juce::ScaledImage dragImage;
     juce::ListenerList<Listener> listeners;
 };
 
@@ -90,7 +91,7 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
     
-    void tabOrderChanged(Project13AudioProcessor::DSP_Order newOrder); //override
+    void tabOrderChanged(Project13AudioProcessor::DSP_Order newOrder) override;
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
