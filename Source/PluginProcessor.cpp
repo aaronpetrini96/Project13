@@ -548,6 +548,80 @@ void Project13AudioProcessor::MonoChannelDSP::updateDSPFromParams()
     }
 }
 
+std::vector<juce::RangedAudioParameter*> Project13AudioProcessor::getParamsForOption(DSP_Option option)
+{
+    switch (option)
+    {
+            
+        case DSP_Option::Phase:
+        {
+            return
+            {
+                // Phase
+                phaserRatehz,
+                phaserCenterFreqhz,
+                phaserDepthPercent,
+                phaserFeedbackPercent,
+                phaserMixPercent,
+                phaserBypass,
+            };
+        }
+            break;
+        case DSP_Option::Chorus:
+        {
+            return
+            {
+                // Chorus
+                chorusRatehz,
+                chorusDepthPercent,
+                chorusCenterDelayms,
+                chorusFeedbackPercent,
+                chorusMixPercent,
+                chorusBypass,
+            };
+        }
+        case DSP_Option::Overdrive:
+        {
+            return
+            {
+                // OD
+                overdriveSaturation,
+                overdriveBypass,
+            };
+        }
+        case DSP_Option::LadderFilter:
+        {
+            return
+            {
+                // LADDER FILTER
+                ladderFilterMode,
+                ladderFilterCutoffHz,
+                ladderFilterResonance,
+                ladderFilterDrive,
+                ladderFilterBypass,
+            };
+        }
+        case DSP_Option::GeneralFilter:
+        {
+            return
+            {
+                // GENERAL FILTER
+                generalFilterMode,
+                generalFilterFreqHz,
+                generalFilterQuality,
+                generalFilterGain,
+                generalFilterBypass,
+            };
+        }
+        case DSP_Option::END_OF_LIST:
+            break;
+    }
+    
+    jassertfalse;
+    return {};
+
+}
+
 void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;

@@ -131,7 +131,7 @@ public:
         END_OF_LIST,
     };
     
-    
+    std::vector<juce::RangedAudioParameter*> getParamsForOption(DSP_Option option);
 
 private:
     
