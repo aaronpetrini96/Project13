@@ -297,10 +297,12 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
         {
             auto entry = r.nextInt(range);
             v = static_cast<Project13AudioProcessor::DSP_Option>(entry);
-            tabbedComponent.addTab(getNameFromDSPOption(v), juce::Colours::white, -1);
+            auto name = getNameFromDSPOption(v);
+            DBG("creating tab: " << name);
+            tabbedComponent.addTab(name, juce::Colours::white, -1);
         }
         
-        DBG(juce::Base64::toBase64(dspOrder.data(), dspOrder.size()));
+//        DBG(juce::Base64::toBase64(dspOrder.data(), dspOrder.size()));
 //        jassertfalse;
         
         audioProcessor.dspOrderFifo.push(dspOrder);
@@ -310,6 +312,7 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
     addAndMakeVisible(tabbedComponent);
     
     tabbedComponent.addListener(this);
+    startTimerHz(30);
     setSize (600, 400);
 }
 
@@ -339,5 +342,38 @@ void Project13AudioProcessorEditor::resized()
 
 void Project13AudioProcessorEditor::tabOrderChanged(Project13AudioProcessor::DSP_Order newOrder)
 {
+    audioProcessor.dspOrderFifo.push(newOrder);
+}
+
+void Project13AudioProcessorEditor::timerCallback()
+{
+    if (audioProcessor.restoreDspOrderFifo.getNumAvailableForReading() == 0)
+        return;
+    
+    using T = Project13AudioProcessor::DSP_Order;
+    T newOrder;
+    newOrder.fill(Project13AudioProcessor::DSP_Option::END_OF_LIST);
+    auto empty = newOrder;
+    while (audioProcessor.restoreDspOrderFifo.pull(newOrder))
+    {
+        ; //do nothing
+    }
+    
+    if (newOrder != empty) //if u pulled nothing newOrder will be filled with end_of_list
+    {
+        //don't create tabs if newOrder is filled with END_OF_LIST
+        addTabsFromDSPOrder(newOrder);
+    }
+}
+
+void Project13AudioProcessorEditor::addTabsFromDSPOrder(Project13AudioProcessor::DSP_Order newOrder)
+{
+    tabbedComponent.clearTabs();
+    for (auto v : newOrder)
+    {
+        tabbedComponent.addTab(getNameFromDSPOption(v), juce::Colours::white, -1);
+    }
+    
+    //if newOrder is the same from before this will do nothing because the order of DSP_Order wont change
     audioProcessor.dspOrderFifo.push(newOrder);
 }
