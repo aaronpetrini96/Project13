@@ -289,31 +289,9 @@ void ExtendedTabBarButton::mouseDrag(const juce::MouseEvent &e)
 Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    dspOrderButton.onClick = [this]()
-    {
-        juce::Random r;
-        Project13AudioProcessor::DSP_Order dspOrder;
-        
-        auto range = juce::Range<int>(static_cast<int>(Project13AudioProcessor::DSP_Option::Phase), static_cast<int>(Project13AudioProcessor::DSP_Option::END_OF_LIST));
-        
-        
-        tabbedComponent.clearTabs();
-        for(auto& v : dspOrder)
-        {
-            auto entry = r.nextInt(range);
-            v = static_cast<Project13AudioProcessor::DSP_Option>(entry);
-            auto name = getNameFromDSPOption(v);
-            DBG("creating tab: " << name);
-            tabbedComponent.addTab(name, juce::Colours::white, -1);
-        }
-        
-//        DBG(juce::Base64::toBase64(dspOrder.data(), dspOrder.size()));
-//        jassertfalse;
-        
-        audioProcessor.dspOrderFifo.push(dspOrder);
-    };
 
-    addAndMakeVisible(dspOrderButton);
+
+
     addAndMakeVisible(tabbedComponent);
     
     tabbedComponent.addListener(this);
@@ -339,7 +317,6 @@ void Project13AudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
     auto bounds = getLocalBounds();
-    dspOrderButton.setBounds(bounds.removeFromTop(30).withSizeKeepingCentre(150, 30));
     bounds.removeFromTop(10);
     
     tabbedComponent.setBounds(bounds.withHeight(30));
