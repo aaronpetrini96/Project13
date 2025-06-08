@@ -83,6 +83,7 @@ Project13AudioProcessor::Project13AudioProcessor()
         dspOrder[i] = static_cast<DSP_Option>(i);
     }
     
+    restoreDspOrderFifo.push(dspOrder);
     
 //============ FLOAT PARAMS ============
     auto floatParams = std::array
