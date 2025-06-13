@@ -4,6 +4,19 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" cppLanguageStandard="20">
   <MAINGROUP id="jUbqp3" name="Project13">
     <GROUP id="{733EE3FF-3DD4-22BF-8978-D89651A281B6}" name="Source">
+      <GROUP id="{FA6CE7B2-19DC-22CB-63FA-D6BCA43A3B3D}" name="GUI">
+        <FILE id="xZ6zZq" name="CustomButtons.cpp" compile="1" resource="0"
+              file="../SimpleMBComp/Source/GUI/CustomButtons.cpp"/>
+        <FILE id="PofuB5" name="CustomButtons.h" compile="0" resource="0" file="../SimpleMBComp/Source/GUI/CustomButtons.h"/>
+        <FILE id="zGc9RC" name="LookAndFeel.cpp" compile="1" resource="0" file="../SimpleMBComp/Source/GUI/LookAndFeel.cpp"/>
+        <FILE id="RGbmFt" name="LookAndFeel.h" compile="0" resource="0" file="../SimpleMBComp/Source/GUI/LookAndFeel.h"/>
+        <FILE id="QHF8RJ" name="RotarySliderWithLabels.cpp" compile="1" resource="0"
+              file="../SimpleMBComp/Source/GUI/RotarySliderWithLabels.cpp"/>
+        <FILE id="YK4pBW" name="RotarySliderWithLabels.h" compile="0" resource="0"
+              file="../SimpleMBComp/Source/GUI/RotarySliderWithLabels.h"/>
+        <FILE id="dCxG0u" name="Utilities.cpp" compile="1" resource="0" file="../SimpleMBComp/Source/GUI/Utilities.cpp"/>
+        <FILE id="U6gbtA" name="Utilities.h" compile="0" resource="0" file="../SimpleMBComp/Source/GUI/Utilities.h"/>
+      </GROUP>
       <GROUP id="{6BB66308-244B-7B16-E114-E2223DFF2010}" name="DSP">
         <FILE id="IiWdl7" name="Fifo.h" compile="0" resource="0" file="SimpleMultiBandComp/Source/DSP/Fifo.h"/>
       </GROUP>
