@@ -8,6 +8,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include <RotarySliderWithLabels.h>
 
 static juce::String getNameFromDSPOption(Project13AudioProcessor::DSP_Option option)
 {
@@ -284,6 +285,10 @@ void ExtendedTabBarButton::mouseDrag(const juce::MouseEvent &e)
 }
 //==============================================================================
 
+DSP_Gui::DSP_Gui(Project13AudioProcessor& proc) : processor(proc)
+{
+    
+}
 
 void DSP_Gui::resized()
 {
@@ -361,7 +366,7 @@ void DSP_Gui::rebuildInterface (std::vector<juce::RangedAudioParameter*> params)
         {
             //slider
             
-            sliders.push_back(std::make_unique<juce::Slider>());
+            sliders.push_back(std::make_unique<RotarySliderWithLabels>(p, p->label, p->getName(100)));
             auto& slider = *sliders.back();
             slider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
             
