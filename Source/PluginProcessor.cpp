@@ -659,9 +659,11 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //TODO: add bypass buttons to tabs
     //TODO: make selected tab more obvious
     //TODO: mouse down on tab should change gui
-    //TODO: replace vertical sliders with SimpleMBComp sliders
+    //[DONE]: replace vertical sliders with SimpleMBComp sliders
     //TODO: replace combo boxes with SimpleMBComp combobox
-    //TODO: replace bypass buttons with SimpleMBComp buttons
+    //[DONE]: replace bypass buttons with SimpleMBComp buttons
+    //TODO: Restore selected tab when window opens
+    //TODO: Restore order when window opens
     //TODO: metering
     //[DONE]: prepare allDSP
     //TODO: wet/dry knob [bonus]
