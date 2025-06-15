@@ -218,6 +218,14 @@ void ExtendedTabbedButtonBar::removeListener(Listener *l)
     listeners.remove(l);
 }
 
+void ExtendedTabbedButtonBar::currentTabChanged (int newCurrentTabIndex, [[maybe_unused]]const juce::String& newCurrentTabName)
+{
+    listeners.call([newCurrentTabIndex](Listener& l)
+    {
+        l.selectedTabChanged(newCurrentTabIndex);
+    });
+}
+
 //  ============  HorizontalConstrainer  ============
 HorizontalConstrainer::HorizontalConstrainer(std::function<juce::Rectangle<int>()> confinerBoundsGetter,
                                              std::function<juce::Rectangle<int>()> confineeBoundsGetter) :
@@ -450,6 +458,21 @@ void Project13AudioProcessorEditor::timerCallback()
         //don't create tabs if newOrder is filled with END_OF_LIST
         addTabsFromDSPOrder(newOrder);
     }
+    
+    if (selectedTabAttachment == nullptr)
+    {
+        selectedTabAttachment = std::make_unique<juce::ParameterAttachment>(*audioProcessor.selectedTab, [this](float tabNum)
+        {
+            auto newTabNum = static_cast<int>(tabNum);
+            if (juce::isPositiveAndBelow(newTabNum, tabbedComponent.getNumTabs()))
+            {
+                tabbedComponent.setCurrentTabIndex(newTabNum);
+            }
+            else
+                jassertfalse;
+        });
+        selectedTabAttachment->sendInitialUpdate();
+    }
 }
 
 void Project13AudioProcessorEditor::addTabsFromDSPOrder(Project13AudioProcessor::DSP_Order newOrder)
@@ -475,5 +498,14 @@ void Project13AudioProcessorEditor::rebuildInterface()
         auto params = audioProcessor.getParamsForOption(option);
         jassert(params.empty() == false);
         dspGUI.rebuildInterface(params);
+    }
+}
+
+void Project13AudioProcessorEditor::selectedTabChanged(int newCurrentTabIndex)
+{
+    if (selectedTabAttachment)
+    {
+        selectedTabAttachment -> setValueAsCompleteGesture(static_cast<float>(newCurrentTabIndex));
+        rebuildInterface();
     }
 }

@@ -61,6 +61,7 @@ auto getGeneralFilterQualityName() {return juce::String("General Filter Quality"
 auto getGeneralFilterGainName() {return juce::String("General Filter Gain");}
 auto getGeneralFilterBypassName() {return juce::String("General Filter Bypass");}
 
+auto getSelectedTabName() {return juce::String("Selected Tab");}
 
 
 
@@ -77,7 +78,7 @@ Project13AudioProcessor::Project13AudioProcessor()
                        )
 #endif
 {
-
+    
     for(size_t i = 0; i < static_cast<size_t>(DSP_Option::END_OF_LIST); ++i)
     {
         dspOrder[i] = static_cast<DSP_Option>(i);
@@ -85,62 +86,62 @@ Project13AudioProcessor::Project13AudioProcessor()
     
     restoreDspOrderFifo.push(dspOrder);
     
-//============ FLOAT PARAMS ============
+    //============ FLOAT PARAMS ============
     auto floatParams = std::array
     {
-//      PHASER
+        //      PHASER
         &phaserRatehz,
         &phaserCenterFreqhz,
         &phaserDepthPercent,
         &phaserFeedbackPercent,
         &phaserMixPercent,
         
-//      CHORUS
+        //      CHORUS
         &chorusRatehz,
         &chorusDepthPercent,
         &chorusCenterDelayms,
         &chorusFeedbackPercent,
         &chorusMixPercent,
         
-//      OD
+        //      OD
         &overdriveSaturation,
         
-//       LADDER FILTER
+        //       LADDER FILTER
         &ladderFilterCutoffHz,
         &ladderFilterResonance,
         &ladderFilterDrive,
         
-//        GENERAL FILTER
+        //        GENERAL FILTER
         &generalFilterFreqHz,
         &generalFilterQuality,
         &generalFilterGain,
     };
-        
+    
     auto floatNameFuncs = std::array
     {
-//      PHASER
+        //      PHASER
         &getPhaserRateName,
         &getPhaserCenterFreqName,
         &getPhaserDepthName,
         &getPhaserFeedbackName,
         &getPhaserMixName,
         
-//      CHORUS
+        //      CHORUS
         &getChorusRateName,
         &getChorusDepthName,
         &getChorusCenterDelayName,
         &getChorusFeedbackName,
         &getChorusMixName,
         
-//        OD
+        //        OD
         &getOverdriveSaturationName,
         
-//        LADDER FILTER
+        //        LADDER FILTER
         &getLadderFilterCutoffName,
         &getLadderFilterResonanceName,
         &getLadderFilterDriveName,
-
-//        GENERAL FILTER
+        
+        //        GENERAL FILTER
         &getGeneralFilterFreqName,
         &getGeneralFilterQualityName,
         &getGeneralFilterGainName,
@@ -149,7 +150,7 @@ Project13AudioProcessor::Project13AudioProcessor()
     
     initCachedParams<juce::AudioParameterFloat*>(floatParams, floatNameFuncs);
     
-//============ CHOICE PARAMS ============
+    //============ CHOICE PARAMS ============
     
     auto choiceParams = std::array
     {
@@ -167,7 +168,7 @@ Project13AudioProcessor::Project13AudioProcessor()
     
     initCachedParams<juce::AudioParameterChoice*>(choiceParams, choiceNameFuncs);
     
-//============ BOOL PARAMS ============
+    //============ BOOL PARAMS ============
     auto bypassParams = std::array
     {
         &phaserBypass,
@@ -187,8 +188,20 @@ Project13AudioProcessor::Project13AudioProcessor()
     };
     
     initCachedParams<juce::AudioParameterBool*>(bypassParams, bypassNameFuncs);
+    
+    //============ INT PARAMS ============
+    auto intParams = std::array
+    {
+        &selectedTab,
+    };
+    
+    auto intNameFuncs = std::array
+    {
+        &getSelectedTabName,
+    };
+    
+    initCachedParams<juce::AudioParameterInt*>(intParams, intNameFuncs);
 }
-
 Project13AudioProcessor::~Project13AudioProcessor()
 {
 }
@@ -475,6 +488,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout Project13AudioProcessor::cre
     
     name = getGeneralFilterBypassName();
     layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID(name, versionHint), name, false));
+    
+    name = getSelectedTabName();
+    layout.add(std::make_unique<juce::AudioParameterInt>(juce::ParameterID(name, versionHint), name, 0, static_cast<int>(DSP_Option::END_OF_LIST) - 1, static_cast<int>(DSP_Option::Chorus)));
     
     return layout;
 }

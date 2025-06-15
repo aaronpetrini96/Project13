@@ -100,6 +100,8 @@ public:
     juce::AudioParameterFloat*  generalFilterGain = nullptr;
     juce::AudioParameterBool*   generalFilterBypass = nullptr;
     
+    juce::AudioParameterInt* selectedTab = nullptr;
+    
 //    SMOOTHED
     //  Phase
     juce::SmoothedValue<float>
