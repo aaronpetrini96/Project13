@@ -408,7 +408,7 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
     
     tabbedComponent.addListener(this);
     startTimerHz(30);
-    setSize (600, 400);
+    setSize (768, 400);
 }
 
 Project13AudioProcessorEditor::~Project13AudioProcessorEditor()
@@ -420,17 +420,101 @@ Project13AudioProcessorEditor::~Project13AudioProcessorEditor()
 //==============================================================================
 void Project13AudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-
+    auto fillMeter = [&] (auto rect, const auto& rmsSource)
+    {
+        g.setColour(juce::Colours::black);
+        g.fillRect(rect);
+        
+        auto rms = rmsSource.get();
+        if (rms > 1.f)
+        {
+            g.setColour(juce::Colours::red);
+            auto lowerLeft = juce::Point<float>(rect.getX(),juce::jmap<float>(juce::Decibels::gainToDecibels(1.f), NEGATIVE_INFINITY, MAX_DECIBELS, rect.getBottom(), rect.getY()));
+            
+            auto upperRight = juce::Point<float>(rect.getRight(), juce::jmap<float>(juce::Decibels::gainToDecibels(rms), NEGATIVE_INFINITY, MAX_DECIBELS, rect.getBottom(), rect.getY()));
+            
+            auto overThreshRect = juce::Rectangle<float>(lowerLeft, upperRight);
+            g.fillRect(overThreshRect);
+        }
+        
+        rms = juce::jmin<float>(rms, 1.f);
+        g.setColour(juce::Colours::green);
+        g.fillRect(rect.withY(juce::jmap<float>(juce::Decibels::gainToDecibels(rms), NEGATIVE_INFINITY, MAX_DECIBELS, rect.getBottom(), rect.getY())).withBottom(rect.getBottom()));
+    };
+    
+    
+    
+    auto drawTicks = [&] (auto rect, auto leftMeterRightEdge, auto rightMeterLeftEdge)
+    {
+        for (int i = MAX_DECIBELS; i >= NEGATIVE_INFINITY; i -= 12)
+        {
+            auto y = juce::jmap<int>(i, NEGATIVE_INFINITY, MAX_DECIBELS, rect.getBottom(), rect.getY());
+            auto r = juce::Rectangle<int>(rect.getWidth(), fontHeight);
+            r.setCentre(rect.getCentreX(), y);
+            
+            g.setColour(i == 0 ? juce::Colours::white :
+                        i > 0 ? juce::Colours::red :
+                        juce::Colours::lightsteelblue);
+            g.drawFittedText(juce::String(i), r, juce::Justification::centred, 1);
+            
+            if(i != MAX_DECIBELS && i != NEGATIVE_INFINITY)
+            {
+                g.drawLine(rect.getX() + tickIndent, y, leftMeterRightEdge - tickIndent, y);
+                g.drawLine(rightMeterLeftEdge + tickIndent, y, rect.getRight() - tickIndent, y);
+            }
+        }
+    };
+    
+    //Lambda draws labels and computes rectangles that form each channel, draws ticks
+    auto drawMeter = [&fillMeter, &drawTicks](juce::Rectangle<int> rect, juce::Graphics& g, const juce::Atomic<float>& leftSource, const juce::Atomic<float>& rightSource, const juce::String& label)
+    {
+        g.setColour(juce::Colours::green);
+        g.drawRect(rect);
+        rect.reduce(2,2);
+        
+        g.setColour(juce::Colours::white);
+        g.drawText(label, rect.removeFromBottom(fontHeight), juce::Justification::centred);
+        
+        rect.removeFromTop(fontHeight/2);
+        
+        const auto meterArea = rect;
+        const auto leftChan = rect.removeFromLeft(meterChanWidth);
+        const auto rightChan = rect.removeFromRight(meterChanWidth);
+        
+        fillMeter(leftChan, leftSource);
+        fillMeter(rightChan, leftSource);
+        drawTicks(meterArea, leftChan.getRight(), rightChan.getX());
+    };
+    
+    auto bounds = getLocalBounds();
+    auto preMeterArea = bounds.removeFromLeft(meterWidth);
+    auto postMeterArea = bounds.removeFromRight(meterWidth);
+    
+    drawMeter(preMeterArea, g, audioProcessor.leftPreRMS, audioProcessor.rightPreRMS, "In");
+    drawMeter(postMeterArea, g, audioProcessor.leftPostRMS, audioProcessor.rightPostRMS, "Out");
+    
+//    auto leftMeterArea = preMeterArea;
+//    auto rightMeterArea = postMeterArea;
+    
+//    fillMeter(preMeterArea.removeFromLeft(meterWidth / 2), audioProcessor.leftPreRMS);
+//    fillMeter(preMeterArea, audioProcessor.rightPreRMS);
+//    
+//    fillMeter(postMeterArea.removeFromLeft(meterWidth / 2), audioProcessor.leftPostRMS);
+//    fillMeter(postMeterArea, audioProcessor.rightPostRMS);
+//    
+//    drawTicks(leftMeterArea, leftMeterArea.removeFromLeft(meterChanWidth).getRight(), leftMeterArea.removeFromRight(meterChanWidth).getX());
+//    drawTicks(rightMeterArea, rightMeterArea.removeFromLeft(meterChanWidth).getRight(), rightMeterArea.removeFromRight(meterChanWidth).getX());
+    
 }
 
 void Project13AudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
     auto bounds = getLocalBounds();
-    bounds.removeFromTop(10);
+    auto leftMeterArea = bounds.removeFromLeft(meterWidth);
+    auto rightMeterArea = bounds.removeFromRight(meterWidth);
+    juce::ignoreUnused(leftMeterArea, rightMeterArea);
+    
     tabbedComponent.setBounds(bounds.removeFromTop(30));
     dspGUI.setBounds(bounds);
 }
@@ -443,6 +527,7 @@ void Project13AudioProcessorEditor::tabOrderChanged(Project13AudioProcessor::DSP
 
 void Project13AudioProcessorEditor::timerCallback()
 {
+    repaint();
     if (audioProcessor.restoreDspOrderFifo.getNumAvailableForReading() == 0)
         return;
     
@@ -474,6 +559,8 @@ void Project13AudioProcessorEditor::timerCallback()
                 jassertfalse;
         });
         selectedTabAttachment->sendInitialUpdate();
+        
+        
     }
 }
 

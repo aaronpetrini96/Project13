@@ -683,7 +683,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //[DONE]: Restore tab order when window opens first time (After quit)
     //[DONE]: Restore tabs when closing/opening window (no quit)
     //[DONE]: restore selected tab when closing/opening window (no quit)
-    //TODO: metering
+    //[DONE]: metering
     //[DONE]: prepare allDSP
     //TODO: wet/dry knob [bonus]
     //TODO: mono & stereo versions [mono is bonus]
@@ -726,6 +726,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     rightPreRMS.set(buffer.getRMSLevel(1, 0, numSamples));
     
     auto block = juce::dsp::AudioBlock<float>(buffer);
+    
     size_t startSample = 0;
     while (samplesRemaining > 0)
     {
