@@ -89,6 +89,21 @@ int ExtendedTabbedButtonBar::findDraggedItemIndex (const SourceDetails& dragSour
     return -1;
 }
 
+struct Comparator
+{
+    static int compareElements(juce::TabBarButton* first, juce::TabBarButton* second)
+    {
+        auto firstX = first->getX();
+        auto secondX = second->getX();
+        if (firstX < secondX)
+            return -1;
+        else if (firstX == secondX)
+            return 0;
+        else
+            return 1;
+    }
+};
+
 juce::Array<juce::TabBarButton*> ExtendedTabbedButtonBar::getTabs()
 {
     auto numTabs = getNumTabs();
@@ -96,6 +111,10 @@ juce::Array<juce::TabBarButton*> ExtendedTabbedButtonBar::getTabs()
     tabs.resize(numTabs);
     for (int i {0}; i < numTabs; ++i)
         tabs.getReference(i) = getTabButton(i);
+    
+    auto unsorted = tabs;
+    Comparator comparator;
+    tabs.sort(comparator);
     
     return tabs;
 }
@@ -195,6 +214,11 @@ void ExtendedTabbedButtonBar::mouseDown(const juce::MouseEvent &e)
     DBG("ExtendedTabbedButtonBar::mouseDown");
     if (auto tabButtonBeingDragged = dynamic_cast<ExtendedTabBarButton*>(e.originalComponent))
     {
+        auto tabs = getTabs();
+        auto idx = tabs.indexOf(tabButtonBeingDragged);
+        if (idx != -1)
+            setCurrentTabIndex(idx);
+        
         startDragging(tabButtonBeingDragged->TabBarButton::getTitle(), tabButtonBeingDragged, dragImage);
     }
 }
@@ -493,18 +517,6 @@ void Project13AudioProcessorEditor::paint (juce::Graphics& g)
     
     drawMeter(preMeterArea, g, audioProcessor.leftPreRMS, audioProcessor.rightPreRMS, "In");
     drawMeter(postMeterArea, g, audioProcessor.leftPostRMS, audioProcessor.rightPostRMS, "Out");
-    
-//    auto leftMeterArea = preMeterArea;
-//    auto rightMeterArea = postMeterArea;
-    
-//    fillMeter(preMeterArea.removeFromLeft(meterWidth / 2), audioProcessor.leftPreRMS);
-//    fillMeter(preMeterArea, audioProcessor.rightPreRMS);
-//    
-//    fillMeter(postMeterArea.removeFromLeft(meterWidth / 2), audioProcessor.leftPostRMS);
-//    fillMeter(postMeterArea, audioProcessor.rightPostRMS);
-//    
-//    drawTicks(leftMeterArea, leftMeterArea.removeFromLeft(meterChanWidth).getRight(), leftMeterArea.removeFromRight(meterChanWidth).getX());
-//    drawTicks(rightMeterArea, rightMeterArea.removeFromLeft(meterChanWidth).getRight(), rightMeterArea.removeFromRight(meterChanWidth).getX());
     
 }
 
