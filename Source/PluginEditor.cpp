@@ -366,6 +366,14 @@ void DSP_Gui::paint(juce::Graphics& g)
 
 void DSP_Gui::rebuildInterface (std::vector<juce::RangedAudioParameter*> params)
 {
+    if (params == currentParams)
+    {
+        DBG("Interface did no change");
+        return;
+    }
+    DBG("Interface changed");
+    currentParams = params;
+    
     sliderAttachments.clear();
     comboBoxesAttachments.clear();
     buttonsAttachments.clear();
