@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "GUI/LookAndFeel.h"
 
 struct ExtendedTabbedButtonBar : juce::TabbedButtonBar, juce::DragAndDropTarget, juce::DragAndDropContainer
 {
@@ -120,6 +121,7 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     Project13AudioProcessor& audioProcessor;
+    LookAndFeel lookAndFeel;
     DSP_Gui dspGUI {audioProcessor};
     ExtendedTabbedButtonBar tabbedComponent;
     

@@ -392,9 +392,7 @@ void DSP_Gui::rebuildInterface (std::vector<juce::RangedAudioParameter*> params)
 Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-
-
-
+    setLookAndFeel(&lookAndFeel);
     addAndMakeVisible(tabbedComponent);
     addAndMakeVisible(dspGUI);
     
@@ -405,6 +403,7 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
 
 Project13AudioProcessorEditor::~Project13AudioProcessorEditor()
 {
+    setLookAndFeel(nullptr);
     tabbedComponent.removeListener(this);
 }
 
