@@ -10,6 +10,9 @@
 
 #include <JuceHeader.h>
 #include "Fifo.h"
+
+static constexpr int NEGATIVE_INFINITY = -72;
+static constexpr int MAX_DECIBELS = 12;
 //==============================================================================
 /**
 */
@@ -124,6 +127,8 @@ public:
     generalFilterGainSmoother;
     
     juce::Atomic<bool> guiNeedsLatestDspOrder {false};
+    juce::Atomic<float> leftPreRMS, rightPreRMS, leftPostRMS, rightPostRMS;
+    
     
     
     enum class GeneralFilterMode

@@ -718,8 +718,12 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 //    leftChannel.process(block.getSingleChannelBlock(0), dspOrder);
 //    rightChannel.process(block.getSingleChannelBlock(1), dspOrder);
     
-    auto samplesRemaining = buffer.getNumSamples();
+    const auto numSamples = buffer.getNumSamples();
+    auto samplesRemaining = numSamples;
     auto maxSamplesToProcess = juce::jmin(samplesRemaining, 64);
+    
+    leftPreRMS.set(buffer.getRMSLevel(0, 0, numSamples));
+    rightPreRMS.set(buffer.getRMSLevel(1, 0, numSamples));
     
     auto block = juce::dsp::AudioBlock<float>(buffer);
     size_t startSample = 0;
@@ -738,8 +742,10 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         leftChannel.updateDSPFromParams();
         rightChannel.updateDSPFromParams();
         
+        //creatre sub block form buffer
         auto subBlock = block.getSubBlock(startSample, samplesToProcess);
         
+        // procces
         leftChannel.process(subBlock.getSingleChannelBlock(0), dspOrder);
         rightChannel.process(subBlock.getSingleChannelBlock(1), dspOrder);
         
@@ -747,6 +753,9 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         samplesRemaining -= samplesToProcess;
         
     }
+    
+    leftPostRMS.set(buffer.getRMSLevel(0, 0, numSamples));
+    rightPostRMS.set(buffer.getRMSLevel(1, 0, numSamples));
 }
 
 
