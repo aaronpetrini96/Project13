@@ -105,6 +105,10 @@ public:
     
     juce::AudioParameterInt* selectedTab = nullptr;
     
+//    Input and Output Gain
+    juce::AudioParameterFloat* inputGain = nullptr;
+    juce::AudioParameterFloat* outputGain = nullptr;
+    
 //    SMOOTHED
     //  Phase
     juce::SmoothedValue<float>
@@ -124,7 +128,9 @@ public:
     ladderFilterDriveSmoother,
     generalFilterFreqHzSmoother,
     generalFilterQualitySmoother,
-    generalFilterGainSmoother;
+    generalFilterGainSmoother,
+    inputGainSmoother,
+    outputGainSmoother;
     
     juce::Atomic<bool> guiNeedsLatestDspOrder {false};
     juce::Atomic<float> leftPreRMS, rightPreRMS, leftPostRMS, rightPostRMS;
@@ -145,6 +151,8 @@ public:
 private:
     
     DSP_Order dspOrder;
+    
+    juce::dsp::Gain<float> inputGainDSP, outputGainDSP;
     
     template <typename DSP>
     struct DSP_Choice : juce::dsp::ProcessorBase

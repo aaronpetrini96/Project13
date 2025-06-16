@@ -63,7 +63,8 @@ auto getGeneralFilterBypassName() {return juce::String("General Filter Bypass");
 
 auto getSelectedTabName() {return juce::String("Selected Tab");}
 
-
+auto getInputGainName() {return juce::String("Input Gain dB");}
+auto getOutputGainName() {return juce::String("Output Gain dB");}
 
 //==============================================================================
 Project13AudioProcessor::Project13AudioProcessor()
@@ -115,6 +116,10 @@ Project13AudioProcessor::Project13AudioProcessor()
         &generalFilterFreqHz,
         &generalFilterQuality,
         &generalFilterGain,
+        
+        //      IN OUT Gain
+        &inputGain,
+        &outputGain,
     };
     
     auto floatNameFuncs = std::array
@@ -145,6 +150,10 @@ Project13AudioProcessor::Project13AudioProcessor()
         &getGeneralFilterFreqName,
         &getGeneralFilterQualityName,
         &getGeneralFilterGainName,
+        
+        //      IN OUT Gain
+        &getInputGainName,
+        &getOutputGainName,
         
     };
     
@@ -283,6 +292,11 @@ void Project13AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
         smoother->reset(sampleRate, 0.005);
     
     updateSmootherFromParams(1, SmootherUpdateMode::initialize);
+    
+    spec.numChannels = getTotalNumInputChannels();
+    
+    inputGainDSP.prepare(spec);
+    outputGainDSP.prepare(spec);
 }
 
 void Project13AudioProcessor::updateSmootherFromParams(int numSamplesToSkip, SmootherUpdateMode init)
@@ -306,6 +320,8 @@ void Project13AudioProcessor::updateSmootherFromParams(int numSamplesToSkip, Smo
         generalFilterFreqHz,
         generalFilterQuality,
         generalFilterGain,
+        inputGain,
+        outputGain,
     };
     
     auto smoothers = getSmoothers();
@@ -329,23 +345,25 @@ std::vector<juce::SmoothedValue<float>*> Project13AudioProcessor::getSmoothers()
 {
     auto smoothers = std::vector
     {
-       &phaserRatehzSmoother,
-       &phaserCenterFreqhzSmoother,
-       &phaserDepthPercentSmoother,
-       &phaserFeedbackPercentSmoother,
-       &phaserMixPercentSmoother,
-       &chorusRatehzSmoother,
-       &chorusDepthPercentSmoother,
-       &chorusCenterDelaymsSmoother,
-       &chorusFeedbackPercentSmoother,
-       &chorusMixPercentSmoother,
-       &overdriveSaturationSmoother,
-       &ladderFilterCutoffHzSmoother,
-       &ladderFilterResonanceSmoother,
-       &ladderFilterDriveSmoother,
-       &generalFilterFreqHzSmoother,
-       &generalFilterQualitySmoother,
-       &generalFilterGainSmoother,
+        &phaserRatehzSmoother,
+        &phaserCenterFreqhzSmoother,
+        &phaserDepthPercentSmoother,
+        &phaserFeedbackPercentSmoother,
+        &phaserMixPercentSmoother,
+        &chorusRatehzSmoother,
+        &chorusDepthPercentSmoother,
+        &chorusCenterDelaymsSmoother,
+        &chorusFeedbackPercentSmoother,
+        &chorusMixPercentSmoother,
+        &overdriveSaturationSmoother,
+        &ladderFilterCutoffHzSmoother,
+        &ladderFilterResonanceSmoother,
+        &ladderFilterDriveSmoother,
+        &generalFilterFreqHzSmoother,
+        &generalFilterQualitySmoother,
+        &generalFilterGainSmoother,
+        &inputGainSmoother,
+        &outputGainSmoother,
     };
     
     return smoothers;
@@ -409,8 +427,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout Project13AudioProcessor::cre
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
     
     const int versionHint = 1;
+    
+    auto name = getInputGainName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(-18.f, 18.f, 0.1f, 1.f), 0.f, "dB"));
+    
+    name = getOutputGainName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(-18.f, 18.f, 0.1f, 1.f), 0.f, "dB"));
 //  PHASER
-    auto name = getPhaserRateName();
+    name = getPhaserRateName();
     layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(0.01f, 2.f, 0.01f, 1.f), 0.2f, "Hz"));
     
     name = getPhaserDepthName();
@@ -662,6 +686,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //[DONE]: bypass params
     //[DONE]: update general filter coefficients
     //[DONE]: add smoothers for all params updates
+    //[DONE]: in/out gain controls
     //[DONE]: save/load settings
     //[DONE]: save/load dsp order
     //[DONE]: bypass DSP
@@ -718,6 +743,16 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 //    auto block = juce::dsp::AudioBlock<float>(buffer);
 //    leftChannel.process(block.getSingleChannelBlock(0), dspOrder);
 //    rightChannel.process(block.getSingleChannelBlock(1), dspOrder);
+    auto block = juce::dsp::AudioBlock<float>(buffer);
+    
+    auto preCtx = juce::dsp::ProcessContextReplacing<float>(block);
+    
+    inputGainSmoother.setTargetValue(inputGain -> get());
+    outputGainSmoother.setTargetValue(outputGain -> get());
+    inputGainDSP.setGainDecibels(inputGainSmoother.getNextValue());
+    inputGainDSP.process(preCtx);
+    
+    
     
     const auto numSamples = buffer.getNumSamples();
     auto samplesRemaining = numSamples;
@@ -726,7 +761,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     leftPreRMS.set(buffer.getRMSLevel(0, 0, numSamples));
     rightPreRMS.set(buffer.getRMSLevel(1, 0, numSamples));
     
-    auto block = juce::dsp::AudioBlock<float>(buffer);
+    
     
     size_t startSample = 0;
     while (samplesRemaining > 0)
@@ -755,6 +790,10 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         samplesRemaining -= samplesToProcess;
         
     }
+    
+    auto postCtx = juce::dsp::ProcessContextReplacing<float>(block);
+    outputGainDSP.setGainDecibels(outputGainSmoother.getNextValue());
+    outputGainDSP.process(postCtx);
     
     leftPostRMS.set(buffer.getRMSLevel(0, 0, numSamples));
     rightPostRMS.set(buffer.getRMSLevel(1, 0, numSamples));

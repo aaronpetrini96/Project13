@@ -507,11 +507,24 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
     addAndMakeVisible(tabbedComponent);
     addAndMakeVisible(dspGUI);
     
+    
+    inGainControl = std::make_unique<RotarySliderWithLabels>(audioProcessor.inputGain, "dB", "IN");
+    outGainControl = std::make_unique<RotarySliderWithLabels>(audioProcessor.outputGain, "dB", "OUT");
+    
+    addAndMakeVisible(inGainControl.get());
+    addAndMakeVisible(outGainControl.get());
+    
+    addLabelPairs(inGainControl->labels, *audioProcessor.inputGain, "dB");
+    addLabelPairs(outGainControl->labels, *audioProcessor.outputGain, "dB");
+    
+    inGainAttachment = std::make_unique<juce::SliderParameterAttachment>(*audioProcessor.inputGain, *inGainControl);
+    outGainAttachment = std::make_unique<juce::SliderParameterAttachment>(*audioProcessor.outputGain, *outGainControl);
+    
     audioProcessor.guiNeedsLatestDspOrder.set(true);
     
     tabbedComponent.addListener(this);
     startTimerHz(30);
-    setSize (768, 400);
+    setSize (768, 450 + ioControlSize);
 }
 
 Project13AudioProcessorEditor::~Project13AudioProcessorEditor()
@@ -591,6 +604,8 @@ void Project13AudioProcessorEditor::paint (juce::Graphics& g)
     };
     
     auto bounds = getLocalBounds();
+    bounds.removeFromBottom(ioControlSize);
+    
     auto preMeterArea = bounds.removeFromLeft(meterWidth);
     auto postMeterArea = bounds.removeFromRight(meterWidth);
     
@@ -602,6 +617,10 @@ void Project13AudioProcessorEditor::paint (juce::Graphics& g)
 void Project13AudioProcessorEditor::resized()
 {
     auto bounds = getLocalBounds();
+    auto gainArea = bounds.removeFromBottom(ioControlSize);
+    inGainControl -> setBounds(gainArea.removeFromLeft(ioControlSize));
+    outGainControl -> setBounds(gainArea.removeFromRight(ioControlSize));
+    
     auto leftMeterArea = bounds.removeFromLeft(meterWidth);
     auto rightMeterArea = bounds.removeFromRight(meterWidth);
     juce::ignoreUnused(leftMeterArea, rightMeterArea);
