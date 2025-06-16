@@ -423,7 +423,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout Project13AudioProcessor::cre
     layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(-100.f, 100.f, 0.1f, 1.f), 0.f, "%"));
     
     name = getPhaserMixName();
-    layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(0.f, 100.f, 0.1f, 30.f), 5.f, "%"));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(juce::ParameterID(name, versionHint), name, juce::NormalisableRange<float>(0.f, 100.f, 0.1f, 1.f), 5.f, "%"));
     
     name = getPhaserBypassName();
     layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID(name, versionHint), name, false));
@@ -672,9 +672,9 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //[DONE]: Restore Tabs in GUI when loading
     //TODO: save/load presets
     //TODO: GUI desing for each DSP instance?
-    //TODO: add bypass buttons to tabs
+    //[DONE]: add bypass buttons to tabs
     //TODO: make selected tab more obvious
-    //TODO: mouse down on tab should change gui
+    //[DONE]: mouse down on tab should change gui
     //[DONE]: replace vertical sliders with SimpleMBComp sliders
     //TODO: replace combo boxes with SimpleMBComp combobox
     //[DONE]: replace bypass buttons with SimpleMBComp buttons

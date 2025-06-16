@@ -10,6 +10,7 @@
 #include "PluginEditor.h"
 #include "GUI/RotarySliderWithLabels.h"
 #include "GUI/Utilities.h"
+#include "GUI/CustomButtons.h"
 
 static juce::String getNameFromDSPOption(Project13AudioProcessor::DSP_Option option)
 {
@@ -223,6 +224,31 @@ void ExtendedTabbedButtonBar::mouseDown(const juce::MouseEvent &e)
     }
 }
 
+struct PowerButtonWithParam : PowerButton
+{
+    PowerButtonWithParam(juce::RangedAudioParameter* p);
+    void changeAttachment(juce::RangedAudioParameter* p);
+    
+private:
+    std::unique_ptr<juce::ButtonParameterAttachment> attachment;
+};
+
+PowerButtonWithParam::PowerButtonWithParam(juce::RangedAudioParameter* p)
+{
+    jassert(p != nullptr);
+    changeAttachment(p);
+}
+
+void PowerButtonWithParam::changeAttachment(juce::RangedAudioParameter* p)
+{
+    attachment.reset();
+    if(p != nullptr)
+    {
+        attachment = std::make_unique<juce::ButtonParameterAttachment>(*p, *this);
+        attachment -> sendInitialUpdate();
+    }
+}
+
 juce::TabBarButton* ExtendedTabbedButtonBar::createTabButton(const juce::String &tabName, int tabIndex)
 {
     auto dspOption = getDSPOptionFromName(tabName);
@@ -398,10 +424,13 @@ void DSP_Gui::rebuildInterface (std::vector<juce::RangedAudioParameter*> params)
         else if (auto* toggle = dynamic_cast<juce::AudioParameterBool*>(p))
         {
             //toggle button
+            /*
             buttons.push_back(std::make_unique<juce::ToggleButton>("Bypass"));
             auto& btn = *buttons.back();
                         
             buttonsAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(processor.apvts, p->getName(100), btn));
+             */
+            DBG("DSP_Gui::rebuild interface skipping" << p->getName(100));
         }
         else
         {
@@ -590,6 +619,30 @@ void Project13AudioProcessorEditor::addTabsFromDSPOrder(Project13AudioProcessor:
     for (auto v : newOrder)
     {
         tabbedComponent.addTab(getNameFromDSPOption(v), juce::Colours::white, -1);
+    }
+    
+    auto numTabs = tabbedComponent.getNumTabs();
+    auto size = tabbedComponent.getHeight();
+    
+    for (int i = 0; i < numTabs; ++i)
+    {
+        if (auto tab = tabbedComponent.getTabButton(i))
+        {
+            auto order = newOrder[i];
+            auto params = audioProcessor.getParamsForOption(order);
+            for (auto p : params)
+            {
+                if (auto bypass = dynamic_cast<juce::AudioParameterBool*>(p))
+                {
+                    if (bypass -> name.containsIgnoreCase("bypass"))
+                    {
+                        auto pbwp = std::make_unique<PowerButtonWithParam>(bypass);
+                        pbwp -> setSize(size, size);
+                        tab -> setExtraComponent(pbwp.release(), juce::TabBarButton::ExtraComponentPlacement::beforeText);
+                    }
+                }
+            }
+        }
     }
     
     rebuildInterface();

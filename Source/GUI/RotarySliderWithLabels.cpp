@@ -102,7 +102,10 @@ juce::String RotarySliderWithLabels::getDisplayString() const
 //        }
         
         addK = truncateKiloValue(val);
-        str = juce::String(val, (addK ? 2 : 0));
+        if (std::abs(val) < 0.0001f)
+            val = 0.f;
+        
+        str = juce::String(val, (addK ? 2 : 1));
     }
     else
     {
