@@ -412,6 +412,28 @@ void DSP_Gui::rebuildInterface (std::vector<juce::RangedAudioParameter*> params)
     {
         auto p = params[i];
         
+        //sliders are used for float and choice
+        if (auto* toggle = dynamic_cast<juce::AudioParameterBool*>(p))
+        {
+            DBG("skipping button attachments");
+        }
+        else
+        {
+            //slider
+            
+            sliders.push_back(std::make_unique<RotarySliderWithLabels>(p, p->label, p->getName(100)));
+            auto& slider = *sliders.back();
+            addLabelPairs(slider.labels, *p, p->label);
+            slider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+            
+            sliderAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.apvts, p->getName(100), slider));
+        }
+        
+        
+        
+#if false
+        /*
+        
         if (auto* choice = dynamic_cast<juce::AudioParameterChoice*>(p))
         {
             //combobox
@@ -424,12 +446,12 @@ void DSP_Gui::rebuildInterface (std::vector<juce::RangedAudioParameter*> params)
         else if (auto* toggle = dynamic_cast<juce::AudioParameterBool*>(p))
         {
             //toggle button
-            /*
+            
             buttons.push_back(std::make_unique<juce::ToggleButton>("Bypass"));
             auto& btn = *buttons.back();
                         
             buttonsAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(processor.apvts, p->getName(100), btn));
-             */
+            
             DBG("DSP_Gui::rebuild interface skipping" << p->getName(100));
         }
         else
@@ -443,6 +465,9 @@ void DSP_Gui::rebuildInterface (std::vector<juce::RangedAudioParameter*> params)
             
             sliderAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.apvts, p->getName(100), slider));
         }
+    
+        */
+#endif
     }
     
     for ( auto& slider : sliders)
