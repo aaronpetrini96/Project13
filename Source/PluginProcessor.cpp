@@ -699,7 +699,8 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //[DONE]: hide dragged tab image or stop draggin the tab and constrain dragged image to x axis only
     //[DONE]: Restore Tabs in GUI when loading
     //TODO: save/load presets
-    //TODO: GUI desing for each DSP instance?
+    //[DONE]: GUI desing for each DSP instance?
+    //[DONE]: add spectrum analyzer from SimpleMBComp
     //[DONE]: restore selectedTab when windows opens
     //[DONE]: bypass button should toggle rotaryslider enablement
     //[DONE]: fix graphic issue when draggin tab over bypass button

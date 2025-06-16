@@ -14,6 +14,15 @@
 
 static constexpr int NEGATIVE_INFINITY = -72;
 static constexpr int MAX_DECIBELS = 12;
+
+enum class GeneralFilterMode
+{
+    Peak,
+    Bandpass,
+    Notch,
+    Allpass,
+    END_OF_LIST,
+};
 //==============================================================================
 /**
 */
@@ -137,16 +146,7 @@ class Project13AudioProcessor  : public juce::AudioProcessor
     juce::Atomic<float> leftPreRMS, rightPreRMS, leftPostRMS, rightPostRMS;
     
     SimpleMBComp::SingleChannelSampleFifo<juce::AudioBuffer<float>> leftSCSF {SimpleMBComp::Channel::Left}, rightSCSF {SimpleMBComp::Channel::Right};
-    
-    enum class GeneralFilterMode
-    {
-        Peak,
-        Bandpass,
-        Notch,
-        Allpass,
-        END_OF_LIST,
-    };
-    
+        
     std::vector<juce::RangedAudioParameter*> getParamsForOption(DSP_Option option);
 
 private:
