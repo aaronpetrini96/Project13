@@ -697,7 +697,9 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //[DONE]: Restore Tabs in GUI when loading
     //TODO: save/load presets
     //TODO: GUI desing for each DSP instance?
-    //TODO: fix graphic issue when draggin tab over bypass button
+    //TODO: restore selectedTab when windows opens
+    //TODO: bypass button should toggle rotaryslider enablement
+    //[DONE]: fix graphic issue when draggin tab over bypass button
     //[DONE]: add bypass buttons to tabs
     //[DONE]: make selected tab more obvious
     //[DONE]: mouse down on tab should change gui
