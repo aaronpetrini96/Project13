@@ -12,6 +12,7 @@
 #include "PluginProcessor.h"
 #include "GUI/LookAndFeel.h"
 #include "GUI/CustomButtons.h"
+#include <SpectrumAnalyzer.h>
 
 
 template <typename ParamsContainer>
@@ -164,6 +165,14 @@ private:
     LookAndFeel lookAndFeel;
     DSP_Gui dspGUI {audioProcessor};
     ExtendedTabbedButtonBar tabbedComponent;
+    
+    SimpleMBComp::SpectrumAnalyzer analyzer
+    {
+        audioProcessor,
+        audioProcessor.leftSCSF,
+        audioProcessor.rightSCSF
+    };
+    
     
     static constexpr int meterWidth = 80;
     static constexpr int fontHeight = 24;

@@ -9,7 +9,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "GUI/RotarySliderWithLabels.h"
-#include "GUI/Utilities.h"
+#include <Utilities.h>
 
 
 static juce::String getNameFromDSPOption(Project13AudioProcessor::DSP_Option option)
@@ -497,7 +497,7 @@ void DSP_Gui::rebuildInterface (std::vector<juce::RangedAudioParameter*> params)
             
             sliders.push_back(std::make_unique<RotarySliderWithLabels>(p, p->label, p->getName(100)));
             auto& slider = *sliders.back();
-            addLabelPairs(slider.labels, *p, p->label);
+            SimpleMBComp::addLabelPairs(slider.labels, *p, p->label);
             slider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
             
             sliderAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.apvts, p->getName(100), slider));
@@ -528,12 +528,13 @@ void DSP_Gui::toggleSliderEnablement(bool enabled)
 //==============================================================================
 //==============================================================================
 Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p)
+    : AudioProcessorEditor (&p), audioProcessor (p), analyzer(audioProcessor, audioProcessor.leftSCSF, audioProcessor.rightSCSF)
 {
     setLookAndFeel(&lookAndFeel);
     addAndMakeVisible(tabbedComponent);
     addAndMakeVisible(dspGUI);
     
+    addAndMakeVisible(analyzer);
     
     inGainControl = std::make_unique<RotarySliderWithLabels>(audioProcessor.inputGain, "dB", "IN");
     outGainControl = std::make_unique<RotarySliderWithLabels>(audioProcessor.outputGain, "dB", "OUT");
@@ -541,8 +542,8 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
     addAndMakeVisible(inGainControl.get());
     addAndMakeVisible(outGainControl.get());
     
-    addLabelPairs(inGainControl->labels, *audioProcessor.inputGain, "dB");
-    addLabelPairs(outGainControl->labels, *audioProcessor.outputGain, "dB");
+    SimpleMBComp::addLabelPairs(inGainControl->labels, *audioProcessor.inputGain, "dB");
+    SimpleMBComp::addLabelPairs(outGainControl->labels, *audioProcessor.outputGain, "dB");
     
     inGainAttachment = std::make_unique<juce::SliderParameterAttachment>(*audioProcessor.inputGain, *inGainControl);
     outGainAttachment = std::make_unique<juce::SliderParameterAttachment>(*audioProcessor.outputGain, *outGainControl);
@@ -551,7 +552,7 @@ Project13AudioProcessorEditor::Project13AudioProcessorEditor (Project13AudioProc
     
     tabbedComponent.addListener(this);
     startTimerHz(30);
-    setSize (768, 450 + ioControlSize);
+    setSize (768, 450);
 }
 
 Project13AudioProcessorEditor::~Project13AudioProcessorEditor()
@@ -644,13 +645,17 @@ void Project13AudioProcessorEditor::paint (juce::Graphics& g)
 void Project13AudioProcessorEditor::resized()
 {
     auto bounds = getLocalBounds();
-    auto gainArea = bounds.removeFromBottom(ioControlSize);
-    inGainControl -> setBounds(gainArea.removeFromLeft(ioControlSize));
-    outGainControl -> setBounds(gainArea.removeFromRight(ioControlSize));
+//    auto gainArea = bounds.removeFromBottom(ioControlSize);
+//    inGainControl -> setBounds(gainArea.removeFromLeft(ioControlSize));
+//    outGainControl -> setBounds(gainArea.removeFromRight(ioControlSize));
     
     auto leftMeterArea = bounds.removeFromLeft(meterWidth);
     auto rightMeterArea = bounds.removeFromRight(meterWidth);
-    juce::ignoreUnused(leftMeterArea, rightMeterArea);
+    
+    inGainControl -> setBounds(leftMeterArea.removeFromBottom(ioControlSize));
+    outGainControl -> setBounds(rightMeterArea.removeFromBottom(ioControlSize));
+    
+    analyzer.setBounds(bounds.removeFromTop(bounds.getHeight() * 0.7));
     
     tabbedComponent.setBounds(bounds.removeFromTop(30));
     dspGUI.setBounds(bounds);

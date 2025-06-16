@@ -297,6 +297,9 @@ void Project13AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     
     inputGainDSP.prepare(spec);
     outputGainDSP.prepare(spec);
+    
+    leftSCSF.prepare(samplesPerBlock);
+    rightSCSF.prepare(samplesPerBlock);
 }
 
 void Project13AudioProcessor::updateSmootherFromParams(int numSamplesToSkip, SmootherUpdateMode init)
@@ -796,6 +799,9 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     
     leftPostRMS.set(buffer.getRMSLevel(0, 0, numSamples));
     rightPostRMS.set(buffer.getRMSLevel(1, 0, numSamples));
+    
+    leftSCSF.update(buffer);
+    rightSCSF.update(buffer);
 }
 
 

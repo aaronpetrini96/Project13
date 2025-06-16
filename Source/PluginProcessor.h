@@ -10,6 +10,7 @@
 
 #include <JuceHeader.h>
 #include "Fifo.h"
+#include <SingleChannelSampleFifo.h>
 
 static constexpr int NEGATIVE_INFINITY = -72;
 static constexpr int MAX_DECIBELS = 12;
@@ -18,40 +19,40 @@ static constexpr int MAX_DECIBELS = 12;
 */
 class Project13AudioProcessor  : public juce::AudioProcessor
 {
-public:
+    public:
     //==============================================================================
     Project13AudioProcessor();
     ~Project13AudioProcessor() override;
-
+    
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
-
-   #ifndef JucePlugin_PreferredChannelConfigurations
+    
+#ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
-   #endif
-
+#endif
+    
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
-
+    
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
-
+    
     //==============================================================================
     const juce::String getName() const override;
-
+    
     bool acceptsMidi() const override;
     bool producesMidi() const override;
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
-
+    
     //==============================================================================
     int getNumPrograms() override;
     int getCurrentProgram() override;
     void setCurrentProgram (int index) override;
     const juce::String getProgramName (int index) override;
     void changeProgramName (int index, const juce::String& newName) override;
-
+    
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
@@ -72,31 +73,31 @@ public:
     using DSP_Order = std::array<DSP_Option, static_cast<size_t>(DSP_Option::END_OF_LIST)>;
     SimpleMBComp::Fifo<DSP_Order> dspOrderFifo, restoreDspOrderFifo;
     
-
-//  Phase
+    
+    //  Phase
     juce::AudioParameterFloat* phaserRatehz = nullptr;
     juce::AudioParameterFloat* phaserCenterFreqhz = nullptr;
     juce::AudioParameterFloat* phaserDepthPercent = nullptr;
     juce::AudioParameterFloat* phaserFeedbackPercent = nullptr;
     juce::AudioParameterFloat* phaserMixPercent = nullptr;
     juce::AudioParameterBool*  phaserBypass = nullptr;
-//  Chorus
+    //  Chorus
     juce::AudioParameterFloat* chorusRatehz = nullptr;
     juce::AudioParameterFloat* chorusDepthPercent = nullptr;
     juce::AudioParameterFloat* chorusCenterDelayms = nullptr;
     juce::AudioParameterFloat* chorusFeedbackPercent = nullptr;
     juce::AudioParameterFloat* chorusMixPercent = nullptr;
     juce::AudioParameterBool*  chorusBypass = nullptr;
-//  OD
+    //  OD
     juce::AudioParameterFloat* overdriveSaturation = nullptr;
     juce::AudioParameterBool*  overdriveBypass = nullptr;
-//   LADDER FILTER
+    //   LADDER FILTER
     juce::AudioParameterChoice* ladderFilterMode = nullptr;
     juce::AudioParameterFloat*  ladderFilterCutoffHz = nullptr;
     juce::AudioParameterFloat*  ladderFilterResonance = nullptr;
     juce::AudioParameterFloat*  ladderFilterDrive = nullptr;
     juce::AudioParameterBool*   ladderFilterBypass = nullptr;
-//    GENERAL FILTER
+    //    GENERAL FILTER
     juce::AudioParameterChoice* generalFilterMode = nullptr;
     juce::AudioParameterFloat*  generalFilterFreqHz = nullptr;
     juce::AudioParameterFloat*  generalFilterQuality = nullptr;
@@ -105,11 +106,11 @@ public:
     
     juce::AudioParameterInt* selectedTab = nullptr;
     
-//    Input and Output Gain
+    //    Input and Output Gain
     juce::AudioParameterFloat* inputGain = nullptr;
     juce::AudioParameterFloat* outputGain = nullptr;
     
-//    SMOOTHED
+    //    SMOOTHED
     //  Phase
     juce::SmoothedValue<float>
     phaserRatehzSmoother,
@@ -135,7 +136,7 @@ public:
     juce::Atomic<bool> guiNeedsLatestDspOrder {false};
     juce::Atomic<float> leftPreRMS, rightPreRMS, leftPostRMS, rightPostRMS;
     
-    
+    SimpleMBComp::SingleChannelSampleFifo<juce::AudioBuffer<float>> leftSCSF {SimpleMBComp::Channel::Left}, rightSCSF {SimpleMBComp::Channel::Right};
     
     enum class GeneralFilterMode
     {
