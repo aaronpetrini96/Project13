@@ -218,11 +218,28 @@ void ExtendedTabbedButtonBar::mouseDown(const juce::MouseEvent &e)
         auto tabs = getTabs();
         auto idx = tabs.indexOf(tabButtonBeingDragged);
         if (idx != -1)
+        {
             setCurrentTabIndex(idx);
+            setTabsColours();
+        }
+            
         
         startDragging(tabButtonBeingDragged->TabBarButton::getTitle(), tabButtonBeingDragged, dragImage);
     }
 }
+
+void ExtendedTabbedButtonBar::setTabsColours()
+{
+    auto tabs = getTabs();
+    for (int i = 0; i < tabs.size(); ++i)
+    {
+        auto color = tabs[i]->isFrontTab() ? juce::Colours::skyblue : juce::Colours::darkgrey;
+        setTabBackgroundColour(i, color);
+        tabs[i]->repaint();
+    }
+}
+
+
 
 struct PowerButtonWithParam : PowerButton
 {
@@ -670,6 +687,7 @@ void Project13AudioProcessorEditor::addTabsFromDSPOrder(Project13AudioProcessor:
         }
     }
     
+    tabbedComponent.setTabsColours();
     rebuildInterface();
     //if newOrder is the same from before this will do nothing because the order of DSP_Order wont change
     audioProcessor.dspOrderFifo.push(newOrder);

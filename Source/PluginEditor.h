@@ -38,6 +38,7 @@ struct ExtendedTabbedButtonBar : juce::TabbedButtonBar, juce::DragAndDropTarget,
     void removeListener(Listener* l);
     
     void currentTabChanged (int newCurrentTabIndex, const juce::String& newCurrentTabName) override;
+    void setTabsColours();
     
 private:
     
