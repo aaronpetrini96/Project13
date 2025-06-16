@@ -697,7 +697,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //[DONE]: Restore Tabs in GUI when loading
     //TODO: save/load presets
     //TODO: GUI desing for each DSP instance?
-    //TODO: restore selectedTab when windows opens
+    //[DONE]: restore selectedTab when windows opens
     //TODO: bypass button should toggle rotaryslider enablement
     //[DONE]: fix graphic issue when draggin tab over bypass button
     //[DONE]: add bypass buttons to tabs
@@ -754,8 +754,6 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     inputGainDSP.setGainDecibels(inputGainSmoother.getNextValue());
     inputGainDSP.process(preCtx);
     
-    
-    
     const auto numSamples = buffer.getNumSamples();
     auto samplesRemaining = numSamples;
     auto maxSamplesToProcess = juce::jmin(samplesRemaining, 64);
@@ -763,8 +761,7 @@ void Project13AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     leftPreRMS.set(buffer.getRMSLevel(0, 0, numSamples));
     rightPreRMS.set(buffer.getRMSLevel(1, 0, numSamples));
     
-    
-    
+
     size_t startSample = 0;
     while (samplesRemaining > 0)
     {

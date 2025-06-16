@@ -795,6 +795,7 @@ void Project13AudioProcessorEditor::selectedTabChanged(int newCurrentTabIndex)
     if (selectedTabAttachment)
     {
         rebuildInterface();
+        tabbedComponent.setTabsColours();
         selectedTabAttachment -> setValueAsCompleteGesture(static_cast<float>(newCurrentTabIndex));
     }
 }
